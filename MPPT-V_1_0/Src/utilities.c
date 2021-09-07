@@ -49,24 +49,28 @@ void readVoltageAndCurrent(uint32_t * valueContainer){
 	arrayCurrentADC = valueContainer[0];
 }
 
-void getArrayStatus(void){
+void getArrayStatus(void)
+{
 	calculateMeasurementsAverage();
 
-	if(arrayStatus == ARRAY_ERROR){
+	if(arrayStatus == ARRAY_ERROR)
+	{
 		if (averageArrayVoltage >= ARRAY_TURN_ON_TH)
 				arrayStatus = ARRAY_OK;
 
-		if (averageArrayVoltage < ARRAY_TURN_ON_TH)
+		else if (averageArrayVoltage < ARRAY_TURN_ON_TH)
 			arrayStatus = ARRAY_ERROR;
 
-	} else if (arrayStatus == ARRAY_OK){
+	}
+
+	else if (arrayStatus == ARRAY_OK)
+	{
 		if (averageArrayVoltage >= ARRAY_TURN_OFF_TH)
 			arrayStatus = ARRAY_OK;
 
-		if (averageArrayVoltage < ARRAY_TURN_OFF_TH)
+		else if (averageArrayVoltage < ARRAY_TURN_OFF_TH)
 			arrayStatus = ARRAY_ERROR;
 	}
-
 }
 
 void getBatteryStatus(void){
@@ -103,18 +107,21 @@ void storeMeasurements(void){
 	lastADCBatteryCurrent[lastMeasurementsIterator] = batteryCurrentADC;
 }
 
-void calculateMeasurementsAverage(void){
+void calculateMeasurementsAverage(void)
+{
 	averageArrayVoltage = 0;
 	averageArrayCurrent = 0;
 	averageBatteryVoltage = 0;
 	averageBatteryCurrent = 0;
 
-	for(int i = 0; i < NUMBER_OF_LAST_MEASUREMENTS; i++){
+	for(int i = 0; i < NUMBER_OF_LAST_MEASUREMENTS; i++)
+	{
 		averageArrayVoltage += lastADCArrayVoltage[i];
 		averageArrayCurrent += lastADCArrayCurrent[i];
 		averageBatteryVoltage += lastADCBatteryVoltage[i];
 		averageBatteryCurrent += lastADCBatteryCurrent[i];
 	}
+
 	averageArrayVoltage /= NUMBER_OF_LAST_MEASUREMENTS;
 	averageArrayCurrent /= NUMBER_OF_LAST_MEASUREMENTS;
 	averageBatteryVoltage /= NUMBER_OF_LAST_MEASUREMENTS;
@@ -178,10 +185,10 @@ void calculateInputPower(void){
 	inputPower = averageArrayCurrent * averageArrayVoltage;
 }
 void setDutyCycle(uint32_t dutyCyclePerMille){
-	TIM3->CCR4 = MAX_COUNTER_VALUE*dutyCyclePerMille
+	TIM3->CCR4 = MAX_COUNTER_VALUE*dutyCyclePerMille;
 }
 
-void increseDutyCycle(void){
+void increaseDutyCycle(void){
 	uint32_t currentValue = TIM3->CCR4;
 
 	currentValue += MAX_COUNTER_VALUE*DUTY_CYCLE_STEP/1000;

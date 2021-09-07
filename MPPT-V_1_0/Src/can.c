@@ -1,12 +1,12 @@
 /**
   ******************************************************************************
-  * File Name          : CAN.c
-  * Description        : This file provides code for the configuration
-  *                      of the CAN instances.
+  * @file    can.c
+  * @brief   This file provides code for the configuration
+  *          of the CAN instances.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -19,6 +19,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
+#include "utilities.h"
 
 /* USER CODE BEGIN 0 */
 /* USER CODE BEGIN 0 */
@@ -38,8 +39,15 @@ CAN_HandleTypeDef hcan1;
 void MX_CAN1_Init(void)
 {
 
+  /* USER CODE BEGIN CAN1_Init 0 */
+
+  /* USER CODE END CAN1_Init 0 */
+
+  /* USER CODE BEGIN CAN1_Init 1 */
+
+  /* USER CODE END CAN1_Init 1 */
   hcan1.Instance = CAN1;
-  hcan1.Init.Prescaler = 21;
+  hcan1.Init.Prescaler = 52;
   hcan1.Init.Mode = CAN_MODE_LOOPBACK;
   hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
   hcan1.Init.TimeSeg1 = CAN_BS1_13TQ;
@@ -54,6 +62,9 @@ void MX_CAN1_Init(void)
   {
     Error_Handler();
   }
+  /* USER CODE BEGIN CAN1_Init 2 */
+
+  /* USER CODE END CAN1_Init 2 */
 
 }
 
@@ -68,11 +79,11 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
   /* USER CODE END CAN1_MspInit 0 */
     /* CAN1 clock enable */
     __HAL_RCC_CAN1_CLK_ENABLE();
-  
+
     __HAL_RCC_GPIOA_CLK_ENABLE();
-    /**CAN1 GPIO Configuration    
+    /**CAN1 GPIO Configuration
     PA11     ------> CAN1_RX
-    PA12     ------> CAN1_TX 
+    PA12     ------> CAN1_TX
     */
     GPIO_InitStruct.Pin = GPIO_PIN_11;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -104,10 +115,10 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
   /* USER CODE END CAN1_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_CAN1_CLK_DISABLE();
-  
-    /**CAN1 GPIO Configuration    
+
+    /**CAN1 GPIO Configuration
     PA11     ------> CAN1_RX
-    PA12     ------> CAN1_TX 
+    PA12     ------> CAN1_TX
     */
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11|GPIO_PIN_12);
 
@@ -115,7 +126,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 
   /* USER CODE END CAN1_MspDeInit 1 */
   }
-} 
+}
 
 /* USER CODE BEGIN 1 */
 
@@ -161,13 +172,13 @@ void prepareFrameData(void){
 	uint32_t inputCurrent = averageArrayCurrent;
 
 	frame_SYNC.TxData[0] = 0xFF & inputVoltage;
-	frame_SYNC.TxData[1] = 0xFF00 & inputVoltage;
-	frame_SYNC.TxData[2] = 0xFF0000 & inputVoltage;
-	frame_SYNC.TxData[3] = 0xFF000000 & inputVoltage;
+	frame_SYNC.TxData[1] = (0xFF00 & inputVoltage) >> 8;
+	frame_SYNC.TxData[2] = (0xFF0000 & inputVoltage) >> 16;
+	frame_SYNC.TxData[3] = (0xFF000000 & inputVoltage) >> 24;
 	frame_SYNC.TxData[4] = 0xFF & inputCurrent;
-	frame_SYNC.TxData[5] = 0xFF00 & inputCurrent;
-	frame_SYNC.TxData[6] = 0xFF0000 & inputCurrent;
-	frame_SYNC.TxData[7] = 0xFF000000 & inputCurrent;
+	frame_SYNC.TxData[5] = (0xFF00 & inputCurrent) >> 8;
+	frame_SYNC.TxData[6] = (0xFF0000 & inputCurrent) >> 16;
+	frame_SYNC.TxData[7] = (0xFF000000 & inputCurrent) >> 24;
 }
 
 void sendCAN() {
@@ -187,6 +198,31 @@ void sendCAN() {
 	}
 
 	while (HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) != 3) {
+	}
+}
+
+void sendCANData(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, uint8_t byte5, uint8_t byte6, uint8_t byte7) {
+	frame_SYNC.TxHeader.StdId = 0x080;
+	frame_SYNC.TxHeader.RTR = CAN_RTR_DATA;
+	frame_SYNC.TxHeader.IDE = CAN_ID_STD;
+	frame_SYNC.TxHeader.DLC = 8;
+	frame_SYNC.TxHeader.TransmitGlobalTime = DISABLE;
+
+	frame_SYNC.TxData[0] = byte0;
+	frame_SYNC.TxData[1] = byte1;
+	frame_SYNC.TxData[2] = byte2;
+	frame_SYNC.TxData[3] = byte3;
+	frame_SYNC.TxData[4] = byte4;
+	frame_SYNC.TxData[5] = byte5;
+	frame_SYNC.TxData[6] = byte6;
+	frame_SYNC.TxData[7] = byte7;
+
+	if (HAL_CAN_AddTxMessage(&hcan1, &frame_SYNC.TxHeader, frame_SYNC.TxData,
+			&TxMailbox) != HAL_OK) {
+		Error_Handler();
+	}
+
+	while (HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) != 1) {
 	}
 }
 

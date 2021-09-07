@@ -1,0 +1,28 @@
+Circuit: * C:\Users\Konrad\Documents\GitHub\MPPT\LTspice_symulacja\Symulacja_MPPT.asc
+
+Warning: Multiple definitions of model "aons66402" Type: Vdmos1
+C6: Increased Cpar to 1e-013
+C5: Increased Cpar to 1e-013
+C4: Increased Cpar to 1e-013
+C3: Increased Cpar to 1e-013
+C2: Increased Cpar to 3.3e-010
+C1: Increased Cpar to 3.3e-010
+Direct Newton iteration for .op point succeeded.
+
+Date: Mon Aug 23 10:59:46 2021
+Total elapsed time: 9.982 seconds.
+
+tnom = 27
+temp = 27
+method = modified trap
+totiter = 2182447
+traniter = 2182441
+tranpoints = 712810
+accept = 526791
+rejected = 186019
+matrix size = 18
+fillins = 0
+solver = Normal
+Matrix Compiler1: 700 bytes object code size  0.3/0.1/[0.1]
+Matrix Compiler2: off  [0.1]/0.2/0.1
+

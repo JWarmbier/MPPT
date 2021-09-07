@@ -17,7 +17,6 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
@@ -72,7 +71,6 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	isMPPTInitialised = 0;
   /* USER CODE END 1 */
-  
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -108,7 +106,6 @@ int main(void)
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);	//MCU_PWM_EN Register
 
 
-
   HAL_TIM_Base_Start_IT(&htim4);
   HAL_TIM_Base_Start_IT(&htim1);
 
@@ -124,6 +121,10 @@ int main(void)
   {
 	  storeMeasurements();
 	  HAL_Delay(DELAY_BETWEEN_MEASUREMENTS);
+	  sendCANData(0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8);
+	  HAL_Delay(1000);
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -141,11 +142,12 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage 
+  /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
@@ -160,7 +162,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -176,42 +178,48 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if(isMPPTInitialised){
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(isMPPTInitialised)
+	{
 		if(htim->Instance == TIM1) // T = 1 s*/
 		{
-			  sendCAN();
+			sendCAN();
 		}
+
 		if(htim->Instance == TIM4) // T = 500ms
 		{
 			checkArrayConnection();
 			//checkBatteryConnection();
 
-			if(MPPTState == MPPT_STATE_GREEN){
+			if(MPPTState == MPPT_STATE_GREEN)
+			{
 				void PandOAlgorithm();
 			}
 		}
 	}
-
 }
 
-void PandOAlgorithm(void){
+void PandOAlgorithm(void)
+{
 	uint32_t prevPowerValue = inputPower;
 	calculateInputPower();
-	if (prevStepDirection == STEP_UP){
+
+	if (prevStepDirection == STEP_UP)
+	{
 		if (inputPower > prevPowerValue)
-			increseDutyCycle();
+			increaseDutyCycle();
 		else
 			decreaseDutyCycle();
-
 	}
-	if(prevStepDirection == STEP_DOWN){
+
+	if(prevStepDirection == STEP_DOWN)
+	{
 		if (inputPower > prevPowerValue)
 			decreaseDutyCycle();
 		else
-			increseDutyCycle();
+			increaseDutyCycle();
 	}
-
 }
 
 /* USER CODE END 4 */
@@ -237,7 +245,7 @@ void Error_Handler(void)
   * @retval None
   */
 void assert_failed(uint8_t *file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
